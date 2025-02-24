@@ -1,6 +1,7 @@
 {
   "model_path": "models/model.pt",
   "target_label": 5,
-  "input_image": "data/processed/sample_ct.nii.gz",
+  "input_image": "data/Shift+0",
+  "input_format": "dcm",
   "device": "cuda"
 }

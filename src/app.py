@@ -1,11 +1,13 @@
 import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
 import argparse
 import torch
 
-from src import data_preprocessing as dp
-from src import segmentation
-from src import analysis
-from src import utils
+import data_preprocessing as dp
+import segmentation
+import analysis
+import utils
 
 def main(config_path):
     # 設定ファイルの読み込み
@@ -13,18 +15,24 @@ def main(config_path):
     
     model_path = config["model_path"]
     target_label = config["target_label"]
-    input_image_path = config["input_image"]
-    device = config.get("device", "cpu")
+    input_path = config["input_image"]  # ここはDICOMシリーズが格納されたディレクトリ
+    device = config.get("device", "cuda")
+    input_format = config.get("input_format", "dcm")  # "dcm"または"nii"
     
     print("設定ファイルからパラメータを読み込みました:")
     print(f"  モデルパス: {model_path}")
     print(f"  対象ラベル: {target_label}")
-    print(f"  入力画像パス: {input_image_path}")
+    print(f"  入力パス: {input_path}")
+    print(f"  入力形式: {input_format}")
     print(f"  デバイス: {device}")
     
-    # CT画像の読み込み
-    print("CT画像を読み込み中...")
-    ct_image, affine = dp.load_nifti_image(input_image_path)
+    # 画像の読み込み（入力形式に応じて切り替え）
+    if input_format.lower() == "nii":
+        ct_image, affine = dp.load_nifti_image(input_path)
+    elif input_format.lower() == "dcm":
+        ct_image, sitk_image, affine = dp.load_dicom_series(input_path)
+    else:
+        raise ValueError("input_format は 'nii' または 'dcm' を指定してください。")
     
     # モデルの読み込み
     print("モデルを読み込み中...")
